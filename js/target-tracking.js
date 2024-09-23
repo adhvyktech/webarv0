@@ -2,7 +2,54 @@ import { initializeAR } from './ar-utils.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     await initializeAR();
+    async function displayARScene(arExperience) {
+        await initializeAR(); // Ensure AR libraries are loaded before creating the scene
+        let outputEntity;
 
+        switch (arExperience.outputType) {
+            case 'image':
+                outputEntity = `<a-image src="${arExperience.output}" width="1" height="1"></a-image>`;
+                break;
+            case 'video':
+                outputEntity = `<a-video src="${arExperience.output}" width="1" height="1" autoplay loop></a-video>`;
+                break;
+            case 'youtube':
+                const videoId = getYoutubeVideoId(arExperience.output);
+                outputEntity = `
+                    <a-entity geometry="primitive: plane; width: 1.6; height: 0.9" material="shader: flat; src: #yt-video" position="0 0 0"></a-entity>
+                    <a-assets>
+                        <iframe id="yt-video" width="560" height="315" src="https://www.youtube.com/embed/${videoId}?autoplay=1&loop=1&playlist=${videoId}" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                    </a-assets>
+                `;
+                break;
+            case '3d':
+                outputEntity = `<a-entity gltf-model="${arExperience.output}" scale="0.5 0.5 0.5"></a-entity>`;
+                break;
+        }
+
+        const sceneContent = `
+            <a-scene mindar-image="imageTargetSrc: ${arExperience.targetImage};" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+                <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+                <a-entity mindar-image-target="targetIndex: 0">
+                    ${outputEntity}
+                </a-entity>
+            </a-scene>
+        `;
+
+        arScene.innerHTML = sceneContent;
+
+        return new Promise((resolve, reject) => {
+            const scene = arScene.querySelector('a-scene');
+            scene.addEventListener('loaded', () => {
+                console.log('AR scene loaded successfully');
+                resolve();
+            });
+            scene.addEventListener('error', (error) => {
+                console.error('Error loading AR scene:', error);
+                reject(error);
+            });
+        });
+    }
     const fileUpload = document.getElementById('fileUpload');
     const outputType = document.getElementById('outputType');
     const outputFile = document.getElementById('outputFile');
