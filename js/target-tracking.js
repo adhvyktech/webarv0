@@ -7,6 +7,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const qrCode = document.getElementById('qrCode');
     const uniqueUrl = document.getElementById('uniqueUrl');
     const arScene = document.getElementById('arScene');
+    const targetPreview = document.getElementById('targetPreview');
+    const outputPreview = document.getElementById('outputPreview');
+
+    fileUpload.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                targetPreview.innerHTML = `<img src="${e.target.result}" alt="Target Image Preview">`;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
 
     outputType.addEventListener('change', () => {
         if (outputType.value === 'youtube') {
@@ -15,6 +28,33 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             outputFile.style.display = 'block';
             youtubeLink.style.display = 'none';
+        }
+    });
+
+    outputFile.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                if (outputType.value === 'image') {
+                    outputPreview.innerHTML = `<img src="${e.target.result}" alt="Output Image Preview">`;
+                } else if (outputType.value === 'video') {
+                    outputPreview.innerHTML = `<video src="${e.target.result}" controls></video>`;
+                } else if (outputType.value === '3d') {
+                    outputPreview.innerHTML = `<p>3D model preview not available</p>`;
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    youtubeLink.addEventListener('input', (e) => {
+        const youtubeUrl = e.target.value;
+        if (youtubeUrl) {
+            const videoId = getYoutubeVideoId(youtubeUrl);
+            if (videoId) {
+                outputPreview.innerHTML = `<iframe width="100%" height="200" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
+            }
         }
     });
 
@@ -86,10 +126,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 outputEntity = `<a-video src="${arExperience.output}" width="1" height="1" autoplay loop></a-video>`;
                 break;
             case 'youtube':
-                outputEntity = `<a-entity geometry="primitive: plane; width: 1; height: 0.5625" material="shader: flat; src: #yt-video"></a-entity>
-                                <a-assets>
-                                    <video id="yt-video" src="${arExperience.output}" autoplay loop crossorigin="anonymous"></video>
-                                </a-assets>`;
+                const videoId = getYoutubeVideoId(arExperience.output);
+                outputEntity = `
+                    <a-entity geometry="primitive: plane; width: 1.6; height: 0.9" material="shader: flat; src: #yt-video" position="0 0 0"></a-entity>
+                    <a-assets>
+                        <iframe id="yt-video" width="560" height="315" src="https://www.youtube.com/embed/${videoId}?autoplay=1&loop=1&playlist=${videoId}" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                    </a-assets>
+                `;
                 break;
             case '3d':
                 outputEntity = `<a-entity gltf-model="${arExperience.output}" scale="0.5 0.5 0.5"></a-entity>`;
@@ -104,5 +147,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 </a-entity>
             </a-scene>
         `;
+    }
+
+    function getYoutubeVideoId(url) {
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+        const match = url.match(regExp);
+        return (match && match[2].length === 11) ? match[2] : null;
     }
 });
