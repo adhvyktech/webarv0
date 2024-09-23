@@ -1,4 +1,8 @@
-document.addEventListener('DOMContentLoaded', () => {
+import { initializeAR } from './ar-utils.js';
+
+document.addEventListener('DOMContentLoaded', async () => {
+    await initializeAR();
+
     const fileUpload = document.getElementById('fileUpload');
     const outputType = document.getElementById('outputType');
     const outputFile = document.getElementById('outputFile');
@@ -121,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
             uniqueUrl.innerHTML = `<p>Unique URL: <a href="${arUrl}" target="_blank">${arUrl}</a></p>`;
 
             console.log('Displaying AR scene preview...');
-            displayARScene(arExperience);
+            await displayARScene(arExperience);
 
             console.log('AR experience generated successfully');
         } catch (error) {
@@ -167,7 +171,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function displayARScene(arExperience) {
+    async function displayARScene(arExperience) {
+        await initializeAR(); // Ensure AR libraries are loaded before creating the scene
         let outputEntity;
 
         switch (arExperience.outputType) {
@@ -191,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
         }
 
-        arScene.innerHTML = `
+        const sceneContent = `
             <a-scene mindar-image="imageTargetSrc: ${arExperience.targetImage};" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
                 <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
                 <a-entity mindar-image-target="targetIndex: 0">
@@ -199,6 +204,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 </a-entity>
             </a-scene>
         `;
+
+        arScene.innerHTML = sceneContent;
+
+        return new Promise((resolve, reject) => {
+            const scene = arScene.querySelector('a-scene');
+            scene.addEventListener('loaded', () => {
+                console.log('AR scene loaded successfully');
+                resolve();
+            });
+            scene.addEventListener('error', (error) => {
+                console.error('Error loading AR scene:', error);
+                reject(error);
+            });
+        });
     }
 
     function getYoutubeVideoId(url) {

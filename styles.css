@@ -136,3 +136,33 @@ footer {
     background-color: #bdc3c7;
     cursor: not-allowed;
 }
+#loadingIndicator {
+    text-align: center;
+    font-weight: bold;
+    margin-top: 1rem;
+    color: #3498db;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#loadingIndicator::after {
+    content: '';
+    width: 20px;
+    height: 20px;
+    border: 2px solid #3498db;
+    border-top: 2px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-left: 10px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.button:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
+}
