@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const arScene = document.getElementById('arScene');
     const targetPreview = document.getElementById('targetPreview');
     const outputPreview = document.getElementById('outputPreview');
+    const loadingIndicator = document.getElementById('loadingIndicator');
 
     let db;
 
@@ -23,11 +24,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     request.onsuccess = (event) => {
         db = event.target.result;
+        console.log('IndexedDB opened successfully');
     };
 
     request.onupgradeneeded = (event) => {
         db = event.target.result;
         const objectStore = db.createObjectStore('arExperiences', { keyPath: 'id' });
+        console.log('IndexedDB upgraded');
     };
 
     fileUpload.addEventListener('change', (e) => {
@@ -80,6 +83,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     generateButton.addEventListener('click', async () => {
         try {
+            loadingIndicator.style.display = 'block';
+            generateButton.disabled = true;
+
             if (!fileUpload.files[0]) {
                 throw new Error('Please upload a target image.');
             }
@@ -92,19 +98,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error('Please enter a YouTube URL.');
             }
 
+            console.log('Reading target image...');
             const targetImage = await readFileAsDataURL(fileUpload.files[0]);
             let output;
 
             if (outputType.value === 'youtube') {
                 output = youtubeLink.value;
             } else {
+                console.log('Reading output file...');
                 output = await readFileAsDataURL(outputFile.files[0]);
             }
 
             const uniqueId = Math.random().toString(36).substring(2, 15);
             const arExperience = createARExperience(uniqueId, targetImage, outputType.value, output);
 
-            // Save the AR experience data to IndexedDB
+            console.log('Saving AR experience to IndexedDB...');
             await saveARExperience(arExperience);
 
             // Generate QR code and unique URL
@@ -112,11 +120,16 @@ document.addEventListener('DOMContentLoaded', () => {
             qrCode.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(arUrl)}" alt="QR Code">`;
             uniqueUrl.innerHTML = `<p>Unique URL: <a href="${arUrl}" target="_blank">${arUrl}</a></p>`;
 
-            // Display the AR scene preview
+            console.log('Displaying AR scene preview...');
             displayARScene(arExperience);
+
+            console.log('AR experience generated successfully');
         } catch (error) {
             console.error('Error generating AR experience:', error);
             alert(error.message || 'An error occurred while generating the AR experience. Please try again.');
+        } finally {
+            loadingIndicator.style.display = 'none';
+            generateButton.disabled = false;
         }
     });
 
