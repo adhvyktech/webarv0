@@ -10,6 +10,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const targetPreview = document.getElementById('targetPreview');
     const outputPreview = document.getElementById('outputPreview');
 
+    let db;
+
+    // Open IndexedDB
+    const dbName = 'ARExperienceDB';
+    const request = indexedDB.open(dbName, 1);
+
+    request.onerror = (event) => {
+        console.error('IndexedDB error:', event.target.error);
+        alert('Error opening database. Please try again.');
+    };
+
+    request.onsuccess = (event) => {
+        db = event.target.result;
+    };
+
+    request.onupgradeneeded = (event) => {
+        db = event.target.result;
+        const objectStore = db.createObjectStore('arExperiences', { keyPath: 'id' });
+    };
+
     fileUpload.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -59,43 +79,45 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     generateButton.addEventListener('click', async () => {
-        if (!fileUpload.files[0]) {
-            alert('Please upload a target image.');
-            return;
+        try {
+            if (!fileUpload.files[0]) {
+                throw new Error('Please upload a target image.');
+            }
+
+            if (outputType.value !== 'youtube' && !outputFile.files[0]) {
+                throw new Error('Please upload an output file.');
+            }
+
+            if (outputType.value === 'youtube' && !youtubeLink.value) {
+                throw new Error('Please enter a YouTube URL.');
+            }
+
+            const targetImage = await readFileAsDataURL(fileUpload.files[0]);
+            let output;
+
+            if (outputType.value === 'youtube') {
+                output = youtubeLink.value;
+            } else {
+                output = await readFileAsDataURL(outputFile.files[0]);
+            }
+
+            const uniqueId = Math.random().toString(36).substring(2, 15);
+            const arExperience = createARExperience(uniqueId, targetImage, outputType.value, output);
+
+            // Save the AR experience data to IndexedDB
+            await saveARExperience(arExperience);
+
+            // Generate QR code and unique URL
+            const arUrl = `${window.location.origin}/ar-view.html?id=${uniqueId}`;
+            qrCode.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(arUrl)}" alt="QR Code">`;
+            uniqueUrl.innerHTML = `<p>Unique URL: <a href="${arUrl}" target="_blank">${arUrl}</a></p>`;
+
+            // Display the AR scene preview
+            displayARScene(arExperience);
+        } catch (error) {
+            console.error('Error generating AR experience:', error);
+            alert(error.message || 'An error occurred while generating the AR experience. Please try again.');
         }
-
-        if (outputType.value !== 'youtube' && !outputFile.files[0]) {
-            alert('Please upload an output file.');
-            return;
-        }
-
-        if (outputType.value === 'youtube' && !youtubeLink.value) {
-            alert('Please enter a YouTube URL.');
-            return;
-        }
-
-        const targetImage = await readFileAsDataURL(fileUpload.files[0]);
-        let output;
-
-        if (outputType.value === 'youtube') {
-            output = youtubeLink.value;
-        } else {
-            output = await readFileAsDataURL(outputFile.files[0]);
-        }
-
-        const uniqueId = Math.random().toString(36).substring(2, 15);
-        const arExperience = createARExperience(targetImage, outputType.value, output);
-
-        // Save the AR experience data (you might want to use a backend service for this)
-        localStorage.setItem(uniqueId, JSON.stringify(arExperience));
-
-        // Generate QR code and unique URL
-        const arUrl = `${window.location.origin}/ar-view.html?id=${uniqueId}`;
-        qrCode.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(arUrl)}" alt="QR Code">`;
-        uniqueUrl.innerHTML = `<p>Unique URL: <a href="${arUrl}" target="_blank">${arUrl}</a></p>`;
-
-        // Display the AR scene preview
-        displayARScene(arExperience);
     });
 
     function readFileAsDataURL(file) {
@@ -107,12 +129,29 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function createARExperience(targetImage, outputType, output) {
+    function createARExperience(id, targetImage, outputType, output) {
         return {
+            id,
             targetImage,
             outputType,
             output
         };
+    }
+
+    function saveARExperience(arExperience) {
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction(['arExperiences'], 'readwrite');
+            const objectStore = transaction.objectStore('arExperiences');
+            const request = objectStore.add(arExperience);
+
+            request.onerror = (event) => {
+                reject('Error saving AR experience to IndexedDB');
+            };
+
+            request.onsuccess = (event) => {
+                resolve();
+            };
+        });
     }
 
     function displayARScene(arExperience) {
