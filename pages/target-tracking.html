@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Target Tracking AR Experience</title>
+    <link rel="stylesheet" href="../styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.5/dist/mindar-image.prod.js"></script>
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.5/dist/mindar-image-aframe.prod.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Target Tracking AR Experience</h1>
+    </header>
+    <main>
+        <div class="container ar-container">
+            <h2>Create Your Target Tracking AR Experience</h2>
+            <input type="file" id="fileUpload" accept="image/*">
+            <select id="outputType">
+                <option value="image">Image</option>
+                <option value="video">Video</option>
+                <option value="youtube">YouTube Link</option>
+                <option value="3d">3D Model (.obj, .glb, .gltf)</option>
+            </select>
+            <input type="file" id="outputFile" accept="image/*,video/*,.obj,.glb,.gltf" style="display: none;">
+            <input type="text" id="youtubeLink" placeholder="Enter YouTube URL" style="display: none;">
+            <button id="generateButton" class="button">Generate AR Experience</button>
+            <div id="qrCode"></div>
+            <div id="uniqueUrl"></div>
+        </div>
+    </main>
+    <footer>
+        <p>&copy; 2023 Web AR Experience Creator</p>
+    </footer>
+    <script src="../js/target-tracking.js"></script>
+</body>
+</html>

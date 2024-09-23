@@ -1,0 +1,1 @@
+// This file is intentionally left empty as we don't need any JavaScript for the home page.

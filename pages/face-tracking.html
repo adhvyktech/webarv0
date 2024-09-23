@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Tracking AR Experience</title>
+    <link rel="stylesheet" href="../styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.5/dist/mindar-face.prod.js"></script>
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.5/dist/mindar-face-aframe.prod.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Face Tracking AR Experience</h1>
+    </header>
+    <main>
+        <div class="container ar-container">
+            <h2>Create Your Face Tracking AR Experience</h2>
+            <select id="outputType">
+                <option value="image">Image</option>
+                <option value="video">Video</option>
+                <option value="youtube">YouTube Link</option>
+                <option value="3d">3D Model (.obj, .glb, .gltf)</option>
+            </select>
+            <input type="file" id="outputFile" accept="image/*,video/*,.obj,.glb,.gltf" style="display: none;">
+            <input type="text" id="youtubeLink" placeholder="Enter YouTube URL" style="display: none;">
+            <button id="generateButton" class="button">Generate AR Experience</button>
+            <div id="arScene"></div>
+        </div>
+    </main>
+    <footer>
+        <p>&copy; 2023 Web AR Experience Creator</p>
+    </footer>
+    <script src="../js/face-tracking.js"></script>
+</body>
+</html>

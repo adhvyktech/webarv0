@@ -1,0 +1,64 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AR Experience</title>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.5/dist/mindar-image.prod.js"></script>
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.5/dist/mindar-image-aframe.prod.js"></script>
+</head>
+<body>
+    <div id="arScene"></div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+
+            if (id) {
+                const arExperience = JSON.parse(localStorage.getItem(id));
+                if (arExperience) {
+                    displayARScene(arExperience);
+                } else {
+                    document.body.innerHTML = '<h1>AR experience not found</h1>';
+                }
+            } else {
+                document.body.innerHTML = '<h1>Invalid AR experience URL</h1>';
+            }
+        });
+
+        function displayARScene(arExperience) {
+            const arScene = document.getElementById('arScene');
+            let outputEntity;
+
+            switch (arExperience.outputType) {
+                case 'image':
+                    outputEntity = `<a-image src="${arExperience.output}" width="1" height="1"></a-image>`;
+                    break;
+                case 'video':
+                    outputEntity = `<a-video src="${arExperience.output}" width="1" height="1" autoplay loop></a-video>`;
+                    break;
+                case 'youtube':
+                    outputEntity = `<a-entity geometry="primitive: plane; width: 1; height: 0.5625" material="shader: flat; src: #yt-video"></a-entity>
+                                    <a-assets>
+                                        <video id="yt-video" src="${arExperience.output}" autoplay loop crossorigin="anonymous"></video>
+                                    </a-assets>`;
+                    break;
+                case '3d':
+                    outputEntity = `<a-entity gltf-model="${arExperience.output}" scale="0.5 0.5 0.5"></a-entity>`;
+                    break;
+            }
+
+            arScene.innerHTML = `
+                <a-scene mindar-image="imageTargetSrc: ${arExperience.targetImage};" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+                    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+                    <a-entity mindar-image-target="targetIndex: 0">
+                        ${outputEntity}
+                    </a-entity>
+                </a-scene>
+            `;
+        }
+    </script>
+</body>
+</html>
