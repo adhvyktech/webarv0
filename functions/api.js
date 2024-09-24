@@ -47,4 +47,8 @@ app.get('/api/ar-experiences/:id', async (req, res) => {
   }
 });
 
-module.exports.handler = serverless(app);
+const handler = serverless(app);
+exports.handler = async (event, context) => {
+  const result = await handler(event, context);
+  return result;
+};

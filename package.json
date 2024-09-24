@@ -1,15 +1,12 @@
 {
-  "name": "ar-backend",
+  "name": "cursor-ai-v0-webar",
   "version": "1.0.0",
-  "main": "functions/api.js",
+  "description": "Web AR application",
+  "main": "app.js",
   "scripts": {
-    "start": "netlify-lambda serve functions",
+    "start": "node app.js",
     "build": "netlify-lambda build functions"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
