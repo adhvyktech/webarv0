@@ -134,7 +134,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     async function saveARExperience(arExperience) {
-        const response = await fetch('http://localhost:3000/api/ar-experiences', {
+        const response = await fetch('/.netlify/functions/api/ar-experiences', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
