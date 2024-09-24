@@ -5,7 +5,7 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "build": "netlify-lambda build functions functions-build"
+    "build": "netlify-lambda build functions --config ./webpack.functions.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -15,6 +15,11 @@
     "serverless-http": "^3.1.1"
   },
   "devDependencies": {
-    "netlify-lambda": "^2.0.15"
+    "@babel/core": "^7.25.2",
+    "@babel/preset-env": "^7.25.4",
+    "babel-loader": "^8.4.1",
+    "netlify-lambda": "^2.0.15",
+    "webpack": "^4.47.0",
+    "webpack-node-externals": "^3.0.0"
   }
 }
