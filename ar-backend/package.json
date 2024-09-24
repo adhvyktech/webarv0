@@ -4,7 +4,7 @@
   "main": "functions/api.js",
   "scripts": {
     "start": "netlify-lambda serve functions",
-    "build": "netlify-lambda build functions"
+    "build": "netlify-lambda build functions -o functions-build"
   },
   "keywords": [],
   "author": "",
