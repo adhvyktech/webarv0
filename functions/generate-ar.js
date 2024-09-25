@@ -16,7 +16,7 @@ app.use(express.urlencoded({ extended: true }));
 const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
 fs.ensureDirSync(uploadsDir);
 
-app.post('/api/generate-ar', upload.fields([
+app.post('/generate-ar', upload.fields([
   { name: 'targetImage', maxCount: 1 },
   { name: 'outputFile', maxCount: 1 }
 ]), async (req, res) => {

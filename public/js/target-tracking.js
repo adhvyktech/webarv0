@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 formData.append('outputFile', outputFile);
             }
 
-            const response = await fetch('/api/generate-ar', {
+            const response = await fetch('/.netlify/functions/generate-ar', {
                 method: 'POST',
                 body: formData
             });
@@ -70,7 +70,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (result.success) {
                 qrCode.innerHTML = `<img src="${result.qrCodeDataUrl}" alt="QR Code">`;
                 uniqueUrl.innerHTML = `<a href="${result.arExperienceUrl}" target="_blank">${result.arExperienceUrl}</a>`;
-                // Note: displayARScene function call removed as it's not clear how it should be implemented
             } else {
                 throw new Error(result.error || 'Failed to generate AR experience');
             }
