@@ -13,8 +13,8 @@
     "express": "^4.21.0",
     "fs-extra": "^11.2.0",
     "mongoose": "^8.6.3",
-    "multer": "^1.4.2",
-    "serverless-http": "^3.1.1",
+    "multer": "^1.4.4",
+    "serverless-http": "^3.2.0",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
