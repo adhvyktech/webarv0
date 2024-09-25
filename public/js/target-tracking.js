@@ -62,13 +62,18 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (!response.ok) {
-                throw new Error('Failed to generate AR experience');
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             const result = await response.json();
-            qrCode.innerHTML = `<img src="${result.qrCodeUrl}" alt="QR Code">`;
-            uniqueUrl.innerHTML = `<a href="${result.uniqueUrl}" target="_blank">${result.uniqueUrl}</a>`;
-            displayARScene(result.arExperienceId);
+            
+            if (result.success) {
+                qrCode.innerHTML = `<img src="${result.qrCodeDataUrl}" alt="QR Code">`;
+                uniqueUrl.innerHTML = `<a href="${result.arExperienceUrl}" target="_blank">${result.arExperienceUrl}</a>`;
+                // Note: displayARScene function call removed as it's not clear how it should be implemented
+            } else {
+                throw new Error(result.error || 'Failed to generate AR experience');
+            }
         } catch (error) {
             console.error('Error generating AR experience:', error);
             alert('Failed to generate AR experience. Please try again.');
