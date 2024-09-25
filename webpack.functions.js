@@ -10,10 +10,10 @@ module.exports = {
         use: {
           loader: 'babel-loader',
           options: {
-            presets: [['@babel/preset-env', { targets: { node: '14' } }]],
-          },
-        },
-      },
-    ],
-  },
+            presets: ['@babel/preset-env']
+          }
+        }
+      }
+    ]
+  }
 };

@@ -5,7 +5,7 @@
   "main": "functions/ar-server.js",
   "scripts": {
     "start": "netlify-lambda serve functions",
-    "build": "netlify-lambda build functions"
+    "build": "netlify-lambda build functions --config ./webpack.functions.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
