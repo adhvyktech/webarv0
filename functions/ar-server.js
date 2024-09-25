@@ -8,7 +8,8 @@ const { v4: uuidv4 } = require('uuid');
 const app = express();
 const upload = multer({ dest: '/tmp/uploads/' });
 
-app.use(express.static('public'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.post('/generate-ar', upload.fields([
   { name: 'targetImage', maxCount: 1 },
