@@ -1,4 +1,4 @@
-import { displayARScene } from './ar-utils.js';
+import { displayARScene, displayPreview } from './ar-utils.js';
 
 let targetImageFile = null;
 let outputFile = null;
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 formData.append('outputFile', outputFile);
             }
 
-            const response = await fetch('/.netlify/functions/ar-server/generate-ar', {
+            const response = await fetch('/api/generate-ar', {
                 method: 'POST',
                 body: formData
             });
@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const result = await response.json();
             qrCode.innerHTML = `<img src="${result.qrCodeUrl}" alt="QR Code">`;
-            uniqueUrl.textContent = `Unique URL: ${result.uniqueUrl}`;
+            uniqueUrl.innerHTML = `<a href="${result.uniqueUrl}" target="_blank">${result.uniqueUrl}</a>`;
             displayARScene(result.arExperienceId);
         } catch (error) {
             console.error('Error generating AR experience:', error);
@@ -78,23 +78,3 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
-
-function displayPreview(file, previewElement) {
-    if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            previewElement.innerHTML = `<img src="${e.target.result}" alt="Preview" style="max-width: 200px; max-height: 200px;">`;
-        };
-        reader.readAsDataURL(file);
-    } else if (file.type.startsWith('video/')) {
-        const videoElement = document.createElement('video');
-        videoElement.src = URL.createObjectURL(file);
-        videoElement.controls = true;
-        videoElement.style.maxWidth = '200px';
-        videoElement.style.maxHeight = '200px';
-        previewElement.innerHTML = '';
-        previewElement.appendChild(videoElement);
-    } else if (file.name.endsWith('.glb') || file.name.endsWith('.gltf')) {
-        previewElement.innerHTML = `<p>3D Model: ${file.name}</p>`;
-    }
-}

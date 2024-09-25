@@ -7,8 +7,22 @@
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.1/dist/mindar-image.prod.js"></script>
     <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.1/dist/mindar-image-aframe.prod.js"></script>
+    <style>
+        #loadingIndicator {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+        }
+    </style>
 </head>
 <body>
+    <div id="loadingIndicator" style="display: none;">Loading AR Experience...</div>
     <a-scene mindar-image="imageTargetSrc: #targetImage" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
         <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
         <a-entity mindar-image-target="targetIndex: 0">
@@ -19,8 +33,16 @@
         </a-assets>
     </a-scene>
     <script>
-        fetch(`/ar-experiences/${window.location.pathname.split('/').pop()}/ar-data.json`)
-            .then(response => response.json())
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        loadingIndicator.style.display = 'block';
+
+        fetch(`/api/ar-experiences/${window.location.pathname.split('/').pop()}/ar-data.json`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('AR experience not found');
+                }
+                return response.json();
+            })
             .then(data => {
                 const targetImage = document.getElementById('targetImage');
                 targetImage.src = data.targetImage;
@@ -47,6 +69,12 @@
                         assets.innerHTML += `<iframe id="yt-video" width="560" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
                         break;
                 }
+                loadingIndicator.style.display = 'none';
+            })
+            .catch(error => {
+                console.error('Error loading AR experience:', error);
+                alert('Failed to load AR experience. Please try again.');
+                loadingIndicator.style.display = 'none';
             });
 
         function getYoutubeVideoId(url) {

@@ -2,7 +2,7 @@ const express = require('express');
 const serverless = require('serverless-http');
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs');
+const fs = require('fs-extra');
 const { v4: uuidv4 } = require('uuid');
 
 const app = express();
@@ -11,10 +11,14 @@ const upload = multer({ dest: '/tmp/uploads/' });
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Use Netlify's deploy directory for persistent storage
+const DEPLOY_DIR = process.env.DEPLOY_DIR || '.';
+const AR_EXPERIENCES_DIR = path.join(DEPLOY_DIR, 'ar-experiences');
+
 app.post('/generate-ar', upload.fields([
   { name: 'targetImage', maxCount: 1 },
   { name: 'outputFile', maxCount: 1 }
-]), (req, res) => {
+]), async (req, res) => {
   try {
     const targetImage = req.files['targetImage'][0];
     const outputFile = req.files['outputFile'] ? req.files['outputFile'][0] : null;
@@ -22,15 +26,15 @@ app.post('/generate-ar', upload.fields([
     const youtubeLink = req.body.youtubeLink;
 
     const uniqueId = uuidv4();
-    const arExperienceDir = path.join('/tmp', 'ar-experiences', uniqueId);
-    fs.mkdirSync(arExperienceDir, { recursive: true });
+    const arExperienceDir = path.join(AR_EXPERIENCES_DIR, uniqueId);
+    await fs.ensureDir(arExperienceDir);
 
-    fs.renameSync(targetImage.path, path.join(arExperienceDir, 'target.jpg'));
+    await fs.move(targetImage.path, path.join(arExperienceDir, 'target.jpg'));
     
     let outputPath;
     if (outputFile) {
       outputPath = path.join(arExperienceDir, outputFile.originalname);
-      fs.renameSync(outputFile.path, outputPath);
+      await fs.move(outputFile.path, outputPath);
     }
 
     const arData = {
@@ -40,7 +44,7 @@ app.post('/generate-ar', upload.fields([
       youtubeLink: youtubeLink
     };
 
-    fs.writeFileSync(path.join(arExperienceDir, 'ar-data.json'), JSON.stringify(arData));
+    await fs.writeJson(path.join(arExperienceDir, 'ar-data.json'), arData);
 
     const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(`https://webarv0.netlify.app/ar-view/${uniqueId}`)}`;
     const uniqueUrl = `https://webarv0.netlify.app/ar-view/${uniqueId}`;
@@ -57,13 +61,26 @@ app.post('/generate-ar', upload.fields([
   }
 });
 
-app.get('/ar-view/:id', (req, res) => {
+app.get('/ar-experiences/:id/*', async (req, res) => {
+  try {
+    const filePath = path.join(AR_EXPERIENCES_DIR, req.params.id, req.params[0]);
+    if (await fs.pathExists(filePath)) {
+      res.sendFile(filePath);
+    } else {
+      res.status(404).send('File not found');
+    }
+  } catch (error) {
+    console.error('Error serving AR file:', error);
+    res.status(500).send('Error serving AR file');
+  }
+});
+
+app.get('/ar-view/:id', async (req, res) => {
   try {
     const arExperienceId = req.params.id;
-    const arDataPath = path.join('/tmp', 'ar-experiences', arExperienceId, 'ar-data.json');
+    const arDataPath = path.join(AR_EXPERIENCES_DIR, arExperienceId, 'ar-data.json');
     
-    if (fs.existsSync(arDataPath)) {
-      const arData = JSON.parse(fs.readFileSync(arDataPath, 'utf-8'));
+    if (await fs.pathExists(arDataPath)) {
       res.sendFile(path.join(__dirname, 'public', 'ar-view.html'));
     } else {
       res.status(404).send('AR experience not found');

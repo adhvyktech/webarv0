@@ -44,6 +44,11 @@ export async function fileToDataUrl(file) {
 }
 
 export function displayPreview(file, previewElement) {
+    if (!file) {
+        previewElement.innerHTML = '';
+        return;
+    }
+
     if (file.type.startsWith('image/')) {
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -60,5 +65,7 @@ export function displayPreview(file, previewElement) {
         previewElement.appendChild(videoElement);
     } else if (file.name.endsWith('.glb') || file.name.endsWith('.gltf')) {
         previewElement.innerHTML = `<p>3D Model: ${file.name}</p>`;
+    } else {
+        previewElement.innerHTML = `<p>Unsupported file type: ${file.type}</p>`;
     }
 }
