@@ -2,9 +2,9 @@
   "name": "cursor-ai-v0-webar",
   "version": "1.0.0",
   "description": "Web AR application",
-  "main": "app.js",
+  "main": "functions/ar-server.js",
   "scripts": {
-    "start": "node app.js",
+    "start": "node functions/ar-server.js",
     "build": "netlify-lambda build functions --config ./webpack.functions.js"
   },
   "dependencies": {
@@ -12,7 +12,9 @@
     "dotenv": "^16.4.5",
     "express": "^4.21.0",
     "mongoose": "^8.6.3",
-    "serverless-http": "^3.1.1"
+    "serverless-http": "^3.1.1",
+    "multer": "^1.4.2",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

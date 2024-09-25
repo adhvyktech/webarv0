@@ -3,10 +3,13 @@
   functions = "functions-build"
   publish = "public"
 
-[build.environment]
-  NODE_VERSION = "14"
-
 [[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/:splat"
+  to = "/.netlify/functions/ar-server/:splat"
   status = 200
+
+[functions]
+  directory = "functions"
+
+[dev]
+  command = "npm start"

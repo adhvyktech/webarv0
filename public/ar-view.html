@@ -3,82 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AR Experience</title>
-    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.1/dist/mindar-image.prod.js" type="module"></script>
+    <title>AR View</title>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.1/dist/mindar-image.prod.js"></script>
     <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.1/dist/mindar-image-aframe.prod.js" type="module"></script>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-        }
-        #arScene {
-            width: 100vw;
-            height: 100vh;
-        }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.1/dist/mindar-image-aframe.prod.js"></script>
 </head>
 <body>
-    <div id="arScene"></div>
+    <a-scene mindar-image="imageTargetSrc: #targetImage" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+        <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+        <a-entity mindar-image-target="targetIndex: 0">
+            <a-entity id="arContent"></a-entity>
+        </a-entity>
+        <a-assets>
+            <img id="targetImage" src="" crossorigin="anonymous">
+        </a-assets>
+    </a-scene>
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const id = urlParams.get('id');
+        fetch(`/ar-experiences/${window.location.pathname.split('/').pop()}/ar-data.json`)
+            .then(response => response.json())
+            .then(data => {
+                const targetImage = document.getElementById('targetImage');
+                targetImage.src = data.targetImage;
 
-            if (id) {
-                try {
-                    const response = await fetch(`/.netlify/functions/api/ar-experiences/${id}`);
-                    if (response.ok) {
-                        const arExperience = await response.json();
-                        displayARScene(arExperience);
-                    } else {
-                        document.body.innerHTML = '<h1>AR experience not found</h1>';
-                    }
-                } catch (error) {
-                    console.error('Error fetching AR experience:', error);
-                    document.body.innerHTML = '<h1>Error loading AR experience</h1>';
+                const arContent = document.getElementById('arContent');
+                switch (data.outputType) {
+                    case 'image':
+                        arContent.innerHTML = `<a-image src="${data.outputFile}" position="0 0 0" height="1" width="1"></a-image>`;
+                        break;
+                    case 'video':
+                        arContent.innerHTML = `<a-video src="${data.outputFile}" position="0 0 0" height="1" width="1"></a-video>`;
+                        break;
+                    case '3d':
+                        arContent.innerHTML = `<a-gltf-model src="${data.outputFile}" position="0 0 0" scale="0.1 0.1 0.1"></a-gltf-model>`;
+                        break;
+                    case 'youtube':
+                        const videoId = getYoutubeVideoId(data.youtubeLink);
+                        arContent.innerHTML = `
+                            <a-entity geometry="primitive: plane; width: 1.6; height: 0.9;" material="shader: flat; src: #yt-video" position="0 0 0">
+                                <a-entity geometry="primitive: plane; width: 1.6; height: 0.9;" material="shader: flat; color: #000" position="0 0 -0.01"></a-entity>
+                            </a-entity>
+                        `;
+                        const assets = document.querySelector('a-assets');
+                        assets.innerHTML += `<iframe id="yt-video" width="560" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+                        break;
                 }
-            } else {
-                document.body.innerHTML = '<h1>Invalid AR experience URL</h1>';
-            }
-        });
+            });
 
-        function displayARScene(arExperience) {
-            const arScene = document.getElementById('arScene');
-            let outputEntity;
-
-            switch (arExperience.outputType) {
-                case 'image':
-                    outputEntity = `<a-image src="${arExperience.output}" width="1" height="1"></a-image>`;
-                    break;
-                case 'video':
-                    outputEntity = `<a-video src="${arExperience.output}" width="1" height="1" autoplay loop></a-video>`;
-                    break;
-                case 'youtube':
-                    const videoId = getYouTubeVideoId(arExperience.output);
-                    outputEntity = `
-                        <a-entity geometry="primitive: plane; width: 1.6; height: 0.9" material="shader: flat; src: #yt-video" position="0 0 0"></a-entity>
-                        <a-assets>
-                            <iframe id="yt-video" width="560" height="315" src="https://www.youtube.com/embed/${videoId}?autoplay=1&loop=1&playlist=${videoId}" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-                        </a-assets>
-                    `;
-                    break;
-                case '3d':
-                    outputEntity = `<a-entity gltf-model="${arExperience.output}" scale="0.5 0.5 0.5"></a-entity>`;
-                    break;
-            }
-
-            arScene.innerHTML = `
-                <a-scene mindar-image="imageTargetSrc: ${arExperience.targetImage};" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
-                    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-                    <a-entity mindar-image-target="targetIndex: 0">
-                        ${outputEntity}
-                    </a-entity>
-                </a-scene>
-            `;
-        }
-
-        function getYouTubeVideoId(url) {
+        function getYoutubeVideoId(url) {
             const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
             const match = url.match(regExp);
             return (match && match[2].length === 11) ? match[2] : null;

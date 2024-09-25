@@ -1,4 +1,4 @@
-import { generateARExperience, displayARScene } from './ar-utils.js';
+import { displayARScene } from './ar-utils.js';
 
 let targetImageFile = null;
 let outputFile = null;
@@ -37,9 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const output = outputType.value === 'youtube' ? youtubeLink.value : outputFile;
-
-        if (!output && outputType.value !== 'youtube') {
+        if (outputType.value !== 'youtube' && !outputFile) {
             alert('Please upload an output file or enter a YouTube URL.');
             return;
         }
@@ -48,10 +46,29 @@ document.addEventListener('DOMContentLoaded', () => {
         generateButton.disabled = true;
 
         try {
-            const result = await generateARExperience(targetImageFile, outputType.value, output);
+            const formData = new FormData();
+            formData.append('targetImage', targetImageFile);
+            formData.append('outputType', outputType.value);
+            
+            if (outputType.value === 'youtube') {
+                formData.append('youtubeLink', youtubeLink.value);
+            } else {
+                formData.append('outputFile', outputFile);
+            }
+
+            const response = await fetch('/api/generate-ar', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to generate AR experience');
+            }
+
+            const result = await response.json();
             qrCode.innerHTML = `<img src="${result.qrCodeUrl}" alt="QR Code">`;
             uniqueUrl.textContent = `Unique URL: ${result.uniqueUrl}`;
-            displayARScene(result.arSceneData);
+            displayARScene(result.arExperienceId);
         } catch (error) {
             console.error('Error generating AR experience:', error);
             alert('Failed to generate AR experience. Please try again.');
