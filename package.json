@@ -4,8 +4,8 @@
   "description": "Web AR application",
   "main": "functions/ar-server.js",
   "scripts": {
-    "start": "node functions/ar-server.js",
-    "build": "netlify-lambda build functions --config ./webpack.functions.js"
+    "start": "netlify-lambda serve functions",
+    "build": "netlify-lambda build functions"
   },
   "dependencies": {
     "cors": "^2.8.5",
