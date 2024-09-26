@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 formData.append('outputFile', outputFile);
             }
 
-            const response = await fetch('/.netlify/functions/generate-ar', {
+            const response = await fetch('/api/generate-ar', {
                 method: 'POST',
                 body: formData
             });
